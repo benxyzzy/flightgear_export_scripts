@@ -36,7 +36,7 @@ NORMALS = 0x02
 COLORS = 0x04
 TEXCOORDS = 0x08
 
-FG_ROOT = "/usr/share/games/flightgear/"
+FG_ROOT = os.environ.get("FG_ROOT", "/usr/share/games/flightgear/")
 MaterialList = { }
 
 MaterialListRed = { }
@@ -150,7 +150,7 @@ class BTG:
         self.material = self.materials.index(data) + 1  # Make sure material is always > 0
         self.materialname = data
 
-      elif proptype == INDEX:	
+      elif proptype == INDEX:    
         (idx, ) = unpack("B", data[:1])
         self.readers = []
         if idx & VERTICES: self.readers.append(self.read_vertex)
@@ -166,7 +166,7 @@ class BTG:
     return
 
   def add_face(self, n1, n2, n3):
-#    print "add face", n1,n2,n3
+#    print("add face", n1,n2,n3)
 
     face = {}
 
@@ -192,28 +192,30 @@ class BTG:
 
 #    if len(self.normals) > 0:
 
-    if not face.has_key("material"):
+    if not "material" in face:
       face["material"] = [0, "Default"]
 
     if self.material:
       texturepath = None
 
-      if MaterialList.has_key(face["material"][1]):
-        texturepath = MaterialList[face["material"][1]]
-      if texturepath is not None:
+    totest=face["material"][1].decode('utf-8')
+
+    if totest in MaterialList:
+        texturepath = MaterialList[totest]
+    if texturepath is not None:
         # Load texture
         if os.path.isfile(FG_ROOT + texturepath):
-          face["image"]=FG_ROOT + "Textures.High/" + texturepath
-          print "%s%s%s" % (FG_ROOT,"Textures.High/",texturepath)
+            face["image"]=FG_ROOT + "Textures.High/" + texturepath
+            print("%s%s%s" % (FG_ROOT,"Textures.High/",texturepath))
         elif os.path.isfile(FG_ROOT + "Textures/" + texturepath):
-          face["image"]=FG_ROOT + "Textures/" + texturepath
-          print "%s%s%s" % (FG_ROOT,"Textures/",texturepath)
+            face["image"]=FG_ROOT + "Textures/" + texturepath
+            print("%s%s%s" % (FG_ROOT,"Textures/",texturepath))
 
 #      face["material"] = self.materials.index(self.material)
 #      face["files"] = [self.material - 1, self.material]
     #  if len(self.mesh.faces)>0: self.mesh.faces[-1].mat = 0
 
-#    if MaterialList.has_key(face["files"][1]):
+#    if face["files"][1] in MaterialList:
 #      texturepath = MaterialList[face["files"][1]]
 #      if texturepath is not None:
 #        # Load texture
@@ -240,7 +242,7 @@ class BTG:
     #  no1 = Blender.Mathutils.Vector(self.normals[self.normalidx[n1]]["x"], self.normals[self.normalidx[n1]]["y"], self.normals[self.normalidx[n1]]["z"])
     #  no2 = Blender.Mathutils.Vector(self.normals[self.normalidx[n2]]["x"], self.normals[self.normalidx[n2]]["y"], self.normals[self.normalidx[n2]]["z"])
     #  no3 = Blender.Mathutils.Vector(self.normals[self.normalidx[n3]]["x"], self.normals[self.normalidx[n3]]["y"], self.normals[self.normalidx[n3]]["z"])
-      # no = (no1 + no2 + no3) / 3.0		# Calculate the mean value of the 3 vectors
+      # no = (no1 + no2 + no3) / 3.0        # Calculate the mean value of the 3 vectors
       # Set normals to vectors instead of face?
     #  self.mesh.verts[f[0]].no = no1
     #  self.mesh.verts[f[1]].no = no2
@@ -252,10 +254,10 @@ class BTG:
     #  co1.g = self.colors[self.coloridx[n1]]["green"]
     #  co1.b = self.colors[self.coloridx[n1]]["blue"]
     #  co1.a = self.colors[self.coloridx[n1]]["alpha"]
-    #  print co1.r
+    #  print(co1.r)
 
-    if face.has_key("color"):
-	print(self.colors[self.coloridx[n1]]["red"])
+    if "color" in face:
+        print(self.colors[self.coloridx[n1]]["red"])
 
     #  if len(self.mesh.faces)>0: self.mesh.faces[-1].col.extend([co1])
 
@@ -268,23 +270,23 @@ class BTG:
       self.boundingspheres.append({"x":bs_x, "y":bs_y, "z":bs_z, "radius":bs_rad})
 
     elif objtype == VERTEXLIST:
-      for n in range(0, nbytes/12):	# One vertex is 12 bytes (3 * 4 bytes)
+      for n in range(0, int(nbytes/12)):    # One vertex is 12 bytes (3 * 4 bytes)
         (v_x, v_y, v_z) = unpack("<fff", data[n*12:(n+1)*12])
         self.vertices.append({"x":v_x/1000, "y":v_y/1000, "z":v_z/1000})
 
     elif objtype == NORMALLIST:
-      for n in range(0, nbytes/3):	# One normal is 3 bytes ( 3 * 1 )
+      for n in range(0, int(nbytes/3)):    # One normal is 3 bytes ( 3 * 1 )
         (n_x, n_y, n_z) = unpack("BBB", data[n*3:(n+1)*3])
         self.normals.append({"x":n_x/127.5-1, "y":n_y/127.5-1, "z":n_z/127.5-1})
 
     elif objtype == TEXTURECOORDLIST:
-      for n in range(0, nbytes/8):	# One texture coord is 8 bytes ( 2 * 4 )
+      for n in range(0, int(nbytes/8)):    # One texture coord is 8 bytes ( 2 * 4 )
         (t_x, t_y) = unpack("<ff", data[n*8:(n+1)*8])
         self.texcoords.append({"x":t_x, "y":t_y})
 
     elif objtype == COLORLIST:
-      print ">>", nbytes
-      for n in range(0, nbytes/16):	# Color is 16 bytes ( 4 * 4 )
+      print(">>", nbytes)
+      for n in range(0, int(nbytes/16)):    # Color is 16 bytes ( 4 * 4 )
         (r, g, b, a) = unpack("<ffff", data[n*16:(n+1)*16])
         self.colors.append({"red":r, "green":g, "blue":b, "alpha":a}) 
  
@@ -302,7 +304,7 @@ class BTG:
           n = n + 2
 
       if objtype == POINTS:
-        #print len(self.faceidx), "points"
+        #print(len(self.faceidx), "points")
         # This was WAY too slow so not doing it right now!
         for n in range(0, len(self.faceidx)):
           self.points.append([self.vertices[self.faceidx[n]], self.material])
@@ -314,7 +316,7 @@ class BTG:
           #self.scn.link(ob)
           
       elif objtype == TRIANGLES:
-        for n in range(0, len(self.faceidx)/3):
+        for n in range(0, int(len(self.faceidx)/3)):
           self.add_face(3*n, 3*n+1, 3*n+2)
 
       elif objtype == TRIANGLESTRIPS:
@@ -333,9 +335,9 @@ class BTG:
 
   def read_objects(self, batch):
     for object in range(0, self.nobjects):
-      # print "Importing object",object,"/",self.nobjects
+      # print("Importing object",object,"/",self.nobjects)
 
-      #print "Loading object", self.name + str(object)
+      #print("Loading object", self.name + str(object))
 
       # Clear all variables for this object
       self.readers = [self.read_vertex, self.read_texcoord] 
@@ -346,18 +348,18 @@ class BTG:
       try:
         obj_data = self.f.read(5)
       except:
-        print "Error in file format (object header)"
+        print("Error in file format (object header)")
         return
 
       (object_type, object_properties, object_elements) = unpack("<BHH", obj_data)
 
-      # print "Properties", object_properties
+      # print("Properties", object_properties)
       # Read properties
       for property in range(0, object_properties):
         try:
           prop_data = self.f.read(5)
         except:
-          print "Error in file format (object properties)"
+          print("Error in file format (object properties)")
           return
 
         (property_type, databytes) = unpack("<BI", prop_data)
@@ -365,20 +367,20 @@ class BTG:
         try:
           data = self.f.read(databytes)
         except:
-          print "Error in file format (property data)"
+          print("Error in file format (property data)")
           return
 
         # Parse property if this is a geometry object
         self.parse_property(object_type, property_type, data)
 
 
-      # print "Elements", object_elements
+      # print("Elements", object_elements)
       # Read elements
       for element in range(0, object_elements):
         try:
           elem_data = self.f.read(4)
         except:
-          print "Error in file format (object elements)"
+          print("Error in file format (object elements)")
           return
 
         (databytes, ) = unpack("<I", elem_data)
@@ -387,7 +389,7 @@ class BTG:
         try:
           data = self.f.read(databytes)
         except:
-          print "Error in file format (element data)"
+          print("Error in file format (element data)")
           return
 
         # Parse element data
@@ -403,7 +405,7 @@ class BTG:
       # If loading batch, rotate and place tiles correctly
 #      if batch:
       if True:
-        # print self.center_lon, self.center_lat
+        # print(self.center_lon, self.center_lat)
         ca = math.cos(self.center_lon/180.0*math.pi)
         sa = math.sin(self.center_lon/180.0*math.pi)
         cb = math.cos(-self.center_lat/180.0*math.pi)
@@ -422,7 +424,7 @@ class BTG:
     try:
       f = open(path, "wt")
     except:
-      print "Could not open outfile for writing"
+      print("Could not open outfile for writing")
       return
 
     f.write("AC3Db\r\n")
@@ -430,18 +432,19 @@ class BTG:
     # Materials
     mats = len(self.materials)
     for n, material in enumerate(self.materials):
+      material=material.decode('utf-8')
       c = float(n) / float(mats)
       outRed=0
       outGreen=0
       outBlue=0
       outAlpha=0
-      if MaterialListRed.has_key(material):
+      if material in MaterialListRed:
           outRed=float(MaterialListRed[material])
-      if MaterialListGreen.has_key(material):
+      if material in MaterialListGreen:
           outGreen=float(MaterialListGreen[material])
-      if MaterialListBlue.has_key(material):
+      if material in MaterialListBlue:
           outBlue=float(MaterialListBlue[material])
-      if MaterialListAlpha.has_key(material):
+      if material in MaterialListAlpha:
           outAlpha=float(MaterialListAlpha[material])
       f.write("MATERIAL \"%s\" rgb %f %f %f  amb 1 1 1  emis 0.0 0.0 0.0  spec 0.0 0.0 0.0  shi 0  trans 0.0\r\n" % (material, outRed, outGreen, outBlue))
 
@@ -458,7 +461,8 @@ class BTG:
     for face in self.faces:
         f.write("OBJECT poly\r\n")
         f.write("name \"%s-%d\"\r\n" % (self.base, numberOfNewObjects))
-        if face.has_key("image"): f.write("texture \"%s\"\r\n" % face["image"])
+        if "image" in face:
+            f.write("texture \"%s\"\r\n" % face["image"])
         f.write("numvert %s\r\n" % 3)
         index=0
         for vert in face["verts"]:
@@ -467,7 +471,7 @@ class BTG:
            index=index+1
         f.write("numsurf %d\r\n" % 1)
         f.write("SURF 0x%d%d\r\n" % (2,0))
-        if face.has_key("material"): f.write("mat %d\r\n" % self.materials.index(face["material"][1]))
+        if "material" in face: f.write("mat %d\r\n" % self.materials.index(face["material"][1]))
         f.write("refs %d\r\n" % len(face["verts"]))
         for n in range(0,len(face["verts"])):
                for answer, vert in enumerate(face["verts"]):
@@ -480,9 +484,9 @@ class BTG:
 
     f.close()
 
-    print "Bounding spheres, remember the last one for reverse conversion!"
+    print("Bounding spheres, remember the last one for reverse conversion!")
     for sp in self.boundingspheres:
-      print sp
+      print(sp)
 
     return
 
@@ -501,14 +505,14 @@ class BTG:
       else:
         return  # Not a btg file!
     except:
-      print "Cannot open file", path
+      print("Cannot open file", path)
       return
 
     # Parse the coordinates from the filename, if possible
     try:
       self.index = int(self.base)
     except:
-      print "Could not parse tile location from filename"
+      print("Could not parse tile location from filename")
       if batch:
         return  # Tile can not be placed properly so discard it
     else:
@@ -536,11 +540,11 @@ class BTG:
 
       self.matrix = [[ca*cb, -sa, ca*sb], [sa*cb, ca, sa*sb], [-sb, 0, cb]]
 
-      print "Tile location:"
-      print "  Lat:", self.lat, " Lon:", self.lon
-      print "  X:", self.x, " Y:", self.y
-      print "  Tile span (width)", self.span(self.lat), " degrees"
-      print "  Center:", self.center_lat, self.center_lon
+      print("Tile location:")
+      print("  Lat:", self.lat, " Lon:", self.lon)
+      print("  X:", self.x, " Y:", self.y)
+      print("  Tile span (width)", self.span(self.lat), " degrees")
+      print("  Center:", self.center_lat, self.center_lon)
 
     # Read file contents
     self.f.seek(0)
@@ -550,7 +554,7 @@ class BTG:
       header = self.f.read(8)
       nobjects_ushort = self.f.read(2)
     except:
-      print "File in wrong format"
+      print("File in wrong format")
       return
 
     (version, magic, creation_time) = unpack("<HHI", header)
@@ -561,7 +565,7 @@ class BTG:
       (self.nobjects, ) = unpack("<h", nobjects_ushort)
 
     if not magic == 0x5347:
-      print "Magic is not correct ('SG')"
+      print("Magic is not correct ('SG')")
       return
 
     # Read objects
@@ -582,11 +586,11 @@ class BTG:
       try:
         files= [ f for f in os.listdir(path) if f.lower().endswith('.btg.gz') or f.lower().endswith('.btg')]
       except:
-        print "Cannot open path"
+        print("Cannot open path")
         return
 
       if not files:
-        print "No files!"
+        print("No files!")
         return
 
       for f in files:
@@ -613,19 +617,19 @@ def import_obj(path, outpath):
   return
 
 def usage():
-  print "Usage: python btg_to_ac3d.py [input] [output]"
+  print("Usage: python btg_to_ac3d.py [input] [output]")
   return
 
 
 # Main code
-if len(sys.argv) <> 3:
+if len(sys.argv) != 3:
   usage()
   sys.exit()
 
 # Find materials node if any
 if FG_ROOT is not None and HAS_XML:
   try:  # Try to load materials.xml
-    matxml = xml.dom.minidom.parse(FG_ROOT + "Materials/default/" + "materials.xml")
+    matxml = xml.dom.minidom.parse(FG_ROOT + "Materials/default/" + "global-summer.xml")
 
     proplist = matxml.getElementsByTagName("PropertyList")[0]
 
@@ -633,63 +637,45 @@ if FG_ROOT is not None and HAS_XML:
       mlist = matxml.getElementsByTagName("material")
 
       if mlist is not None:
-        # Find the material's texture
-        texturepath = None
-        for e in mlist:
-
-
-          for conditionNode in e.getElementsByTagName("condition"):
-            for tcondition in conditionNode.childNodes:
-              if tcondition.nodeType == tcondition.TEXT_NODE:  # condition was found
-	          for equalsNode in e.getElementsByTagName("equals"):
-	            for tequals in equalsNode.childNodes:
-	              if tequals.nodeType == tequals.TEXT_NODE:  # condition was found
-		          for valueNode in e.getElementsByTagName("value"):
-		            for tvalue in valueNode.childNodes:
-		              if tvalue.nodeType == tvalue.TEXT_NODE:  # condition was found
-		                if tvalue.nodeValue == "summer":
-
-			          for nameNode in e.getElementsByTagName("name"):
-			            for tname in nameNode.childNodes:
-			              if tname.nodeType == tname.TEXT_NODE:  # Name was found
-			                 for texNode in e.getElementsByTagName("texture"):
-			                    for tpath in texNode.childNodes:
-			                      if tpath.nodeType == tpath.TEXT_NODE:  # texture was found
-			                        MaterialList[tname.nodeValue] = tpath.nodeValue  # Store texture path
-			                        break
-				            for tredNode in e.getElementsByTagName("r"):
-			                       for tred in tredNode.childNodes:
-				                  if tred.nodeType == tred.TEXT_NODE:  # red was found
-					             MaterialListRed[tname.nodeValue] = tred.nodeValue
-				                     break
-			                       break  # go for the next red
-				            for tblueNode in e.getElementsByTagName("b"):
-			                       for tblue in tblueNode.childNodes:
-				                  if tblue.nodeType == tblue.TEXT_NODE:  # blue was found
-					             MaterialListBlue[tname.nodeValue] = tblue.nodeValue
-				                     break
-			                       break  # go for the next blue
-				            for tgreenNode in e.getElementsByTagName("g"):
-			                       for tgreen in tgreenNode.childNodes:
-				                  if tgreen.nodeType == tgreen.TEXT_NODE:  # green was found
-					             MaterialListGreen[tname.nodeValue] = tgreen.nodeValue
-				                     break
-			                       break  # go for the next green
-				            for talphaNode in e.getElementsByTagName("a"):
-			                       for talpha in talphaNode.childNodes:
-				                  if talpha.nodeType == talpha.TEXT_NODE:  # alpha was found
-					             MaterialListAlpha[tname.nodeValue] = talpha.nodeValue
-				                     break
-			                       break  # go for the next alpha
-			                    break  # go for the next texture
-			    break
-			  break
-		    break
-		  break
-	    break
+          # Find the material's texture
+          texturepath = None
+          for e in mlist:
+             for nameNode in e.getElementsByTagName("name"):
+                 for tname in nameNode.childNodes:
+                     if tname.nodeType == tname.TEXT_NODE:  # Name was found
+                          for texNode in e.getElementsByTagName("texture"):
+                              for tpath in texNode.childNodes:
+                                  if tpath.nodeType == tpath.TEXT_NODE:  # texture was found
+                                      MaterialList[tname.nodeValue] = tpath.nodeValue  # Store texture path
+                                      break
+                                  for tredNode in e.getElementsByTagName("r"):
+                                        for tred in tredNode.childNodes:
+                                            if tred.nodeType == tred.TEXT_NODE:  # red was found
+                                                MaterialListRed[tname.nodeValue] = tred.nodeValue
+                                                print(tred.nodeValue)
+                                                break
+                                        break  # go for the next red
+                                  for tblueNode in e.getElementsByTagName("b"):
+                                      for tblue in tblueNode.childNodes:
+                                          if tblue.nodeType == tblue.TEXT_NODE:  # blue was found
+                                              MaterialListBlue[tname.nodeValue] = tblue.nodeValue
+                                              break
+                                      break  # go for the next blue
+                                  for tgreenNode in e.getElementsByTagName("g"):
+                                      for tgreen in tgreenNode.childNodes:
+                                          if tgreen.nodeType == tgreen.TEXT_NODE:  # green was found
+                                              MaterialListGreen[tname.nodeValue] = tgreen.nodeValue
+                                              break
+                                      break  # go for the next green
+                                  for talphaNode in e.getElementsByTagName("a"):
+                                      for talpha in talphaNode.childNodes:
+                                          if talpha.nodeType == talpha.TEXT_NODE:  # alpha was found
+                                              MaterialListAlpha[tname.nodeValue] = talpha.nodeValue
+                                              break
+                                      break  # go for the next alpha
   except:
-    print "Could not load materials.xml"
-    MaterialList = { }
+      print("Could not load materials.xml")
+      MaterialList = { }
 
-print "Loading file", sys.argv[1]
+print("Loading file", sys.argv[1])
 import_obj(sys.argv[1], sys.argv[2])

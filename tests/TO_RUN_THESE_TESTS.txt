@@ -1,0 +1,19 @@
+cd to the directory containing the tests ...
+
+install pip ...
+
+	sudo apt-get install pip
+
+run
+
+	sudo pip install -r requirements.txt
+
+run
+
+	./initTests.sh
+
+Then you can run the following tests
+
+	testPlacement.sh is for checking the geometry is correct for the resulting AC3D. Placement is manually verified using fgfs from flightgear.
+	buildLondon.sh converts some scenery of London, UK to AC3D files
+	test_concat_ac3.py runs some python tests on the code
