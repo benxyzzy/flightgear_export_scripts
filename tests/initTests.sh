@@ -26,8 +26,9 @@ cd ..
 
 mkdir Objects
 cd Objects
-git clone https://github.com/legoboyvdlp/London-OSM-fg-CustomScenery
-mv London-OSM-fg-CustomScenery STG
+wget https://github.com/legoboyvdlp/London-OSM-fg-CustomScenery/archive/refs/heads/master.tar.gz -O London-OSM-fg-CustomScenery-master.tar.gz
+tar -xf London-OSM-fg-CustomScenery-master.tar.gz
+mv London-OSM-fg-CustomScenery-master STG
 
 cd ..
 
