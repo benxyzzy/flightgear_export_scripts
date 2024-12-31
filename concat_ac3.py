@@ -56,16 +56,19 @@ def processACFile(ACFile, splitExtension, splitLine):
                 numberOfObjects = numberOfObjects + 1
                 roll = 0
                 heading = 0
-                pitch = math.radians(90)
+                pitch = 0
                 if len(splitLine) < 7:
-                    heading = math.radians(float(splitLine[5]))
+                    pitch = math.radians(float(splitLine[5]) + 5)
+                    heading = math.radians(float(0))
+                    roll = math.radians(float(270))
                 elif len(splitLine) < 8:
-                    heading = math.radians(float(splitLine[5]))
-                    pitch = math.radians(float(splitLine[6]) + 90)
+                    pitch = math.radians(float(splitLine[5]) + 5)
+                    heading = math.radians(float(splitLine[6]) + 0)
+                    roll = math.radians(float(270))
                 elif len(splitLine) < 9:
-                    heading = math.radians(float(splitLine[5]))
-                    pitch = math.radians(float(splitLine[6]) + 90)
-                    roll = math.radians(float(splitLine[7]))
+                    pitch = math.radians(float(splitLine[5]) + 5)
+                    heading = math.radians(float(splitLine[6]) + 0)
+                    roll = math.radians(float(splitLine[7]) + 270)
 
                 ca = math.cos(roll)
                 sa = math.sin(roll)
@@ -74,9 +77,16 @@ def processACFile(ACFile, splitExtension, splitLine):
                 cr = math.cos(pitch)
                 sr = math.sin(pitch)
 
-                rotationMatrix = ([[ca * cd, sa * cd, sd],
-                    [-ca * sd * sr - sa * cr, -sa * sd * sr + ca * cr, cd * sr],
-                    [-ca * sd * cr + sa * sr, -sa * sd * cr - ca * sr, cd * cr]])
+                rotationMatrix = [[0 for x in range(3)] for y in range(3)] 
+                rotationMatrix[0][0] = cd * cr
+                rotationMatrix[0][1] = cd * sr * sa - sd * ca
+                rotationMatrix[0][2] = cd * sr * ca + sd * sa
+                rotationMatrix[1][0] = sd * cr
+                rotationMatrix[1][1] = sd * sr * sa + cd * ca
+                rotationMatrix[1][2] = sd * sr * ca  - cd * sa
+                rotationMatrix[2][0] = 0 - sr
+                rotationMatrix[2][1] = cr * sa
+                rotationMatrix[2][2] = cr * ca
 
                 mainBody.append("rot " + str(rotationMatrix[0][0]) + " " + str(
                     rotationMatrix[0][1]) + " " + str(rotationMatrix[0][2]) + " " + str(
@@ -84,7 +94,7 @@ def processACFile(ACFile, splitExtension, splitLine):
                     rotationMatrix[1][2]) + " " + str(rotationMatrix[2][0]) + " " + str(
                     rotationMatrix[2][1]) + " " + str(rotationMatrix[2][2]))
 
-                lat = float(splitLine[2])
+                lat = 0 - float(splitLine[2])
                 lon = float(splitLine[3])
                 alt = float(splitLine[4])
 
@@ -92,9 +102,15 @@ def processACFile(ACFile, splitExtension, splitLine):
 
                 convertedCoords = geodToCart(lat, lon, alt)
 
+                #mainBody.append(
+                #    "loc " + str(convertedCoords[2]) + " " + str(convertedCoords[1]) + " " + str(
+                #    alt))
+                #mainBody.append(
+                #    "loc " + str(convertedCoords[1]) + " " + str(convertedCoords[2]) + " " + str(
+                #    alt))
+
                 mainBody.append(
-                    "loc " + str(convertedCoords[1]/1000) + " " + str(convertedCoords[2]/1000) + " " + str(
-                    alt))
+                    "loc " + str(convertedCoords[1]) + " " + str(convertedCoords[0]) + " " + str(alt))
                 # mainBody.append("loc " + str(lon) + " " + str(lat) + " " + str(rad))
             else:
                 splitLine2 = line2.strip().split(" ");
