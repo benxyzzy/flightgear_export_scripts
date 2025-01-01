@@ -43,13 +43,16 @@ def geodToCart(lat, lon, alt):
     z = (h + n - e2 * n) * sphi
     return x, y, z
 
-def processACFile(ACFile, splitExtension, splitLine):
+def processACFile(ACFilePath, splitExtension, splitLine):
     global globalMaterials
     global mainBody
     global numberOfObjects
 
     materialsRelationship = []
-    for line2 in open(ACFile, "r"):
+
+    ACFile = open(ACFilePath, "r")
+
+    for line2 in ACFile:
         if line2.strip() != "AC3Db":
             if line2.strip() == "OBJECT world":
                 mainBody.append("OBJECT poly")
@@ -133,12 +136,13 @@ def processACFile(ACFile, splitExtension, splitLine):
                             mainBody.append("mat " + str(materialsRelationship[int(splitLine2[1])]))
                     elif splitLine2[0] == "texture" and len(splitLine2) > 1:
                         orig_path = splitLine2[1].strip('"')
-                        base_path = Path(ACFile).parent
+                        base_path = Path(ACFilePath).parent
                         abs_path = (base_path / orig_path).resolve()
 
                         mainBody.append(f'texture "{abs_path}"')
                     else:
                         mainBody.append(line2.strip())
+    ACFile.close()
 
 def main(STGFile_path):
 
@@ -156,24 +160,24 @@ def main(STGFile_path):
                         lockedAndLoaded=0
 
                         try:
-                            ACFile = FG_ROOT + splitLine[1]
-                            processACFile(ACFile, splitExtension, splitLine)
+                            ACFilePath = FG_ROOT + splitLine[1]
+                            processACFile(ACFilePath, splitExtension, splitLine)
                             lockedAndLoaded = 1
                         except IOError:
                             lockedAndLoaded = 0
 
                         if lockedAndLoaded == 0:
                             try:
-                                ACFile = FG_SCENERY + splitLine[1]
-                                processACFile(ACFile, splitExtension, splitLine)
+                                ACFilePath = FG_SCENERY + splitLine[1]
+                                processACFile(ACFilePath, splitExtension, splitLine)
                                 lockedAndLoaded = 1
                             except IOError:
                                 lockedAndLoaded = 0
 
                         if lockedAndLoaded == 0:
                             try:
-                                ACFile = os.path.dirname(sys.argv[1]) + "/" + splitLine[1]
-                                processACFile(ACFile, splitExtension, splitLine)
+                                ACFilePath = os.path.dirname(sys.argv[1]) + "/" + splitLine[1]
+                                processACFile(ACFilePath, splitExtension, splitLine)
                                 lockedAndLoaded = 1
                             except IOError:
                                 print("Could not open " + splitLine[1])
