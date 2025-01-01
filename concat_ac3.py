@@ -4,6 +4,7 @@
 
 import math
 import os
+from pathlib import Path
 import sys
 
 globalMaterials = []
@@ -130,6 +131,12 @@ def processACFile(ACFile, splitExtension, splitLine):
                     elif splitLine2[0] == "mat":
                         if len(splitLine2) > 1:
                             mainBody.append("mat " + str(materialsRelationship[int(splitLine2[1])]))
+                    elif splitLine2[0] == "texture" and len(splitLine2) > 1:
+                        orig_path = splitLine2[1]
+                        base_path = Path(FG_ROOT)
+                        abs_path = (base_path / orig_path).resolve()
+
+                        mainBody.append(f"texture {abs_path}")
                     else:
                         mainBody.append(line2.strip())
 
