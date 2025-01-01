@@ -4,6 +4,7 @@
 
 import math
 import os
+from pathlib import Path
 import sys
 
 globalMaterials = []
@@ -48,7 +49,7 @@ def processACFile(ACFile, splitExtension, splitLine):
     global numberOfObjects
 
     materialsRelationship = []
-    for line2 in ACFile:
+    for line2 in open(ACFile, "r"):
         if line2.strip() != "AC3Db":
             if line2.strip() == "OBJECT world":
                 mainBody.append("OBJECT poly")
@@ -130,6 +131,12 @@ def processACFile(ACFile, splitExtension, splitLine):
                     elif splitLine2[0] == "mat":
                         if len(splitLine2) > 1:
                             mainBody.append("mat " + str(materialsRelationship[int(splitLine2[1])]))
+                    elif splitLine2[0] == "texture" and len(splitLine2) > 1:
+                        orig_path = splitLine2[1].strip('"')
+                        base_path = Path(ACFile).parent
+                        abs_path = (base_path / orig_path).resolve()
+
+                        mainBody.append(f'texture "{abs_path}"')
                     else:
                         mainBody.append(line2.strip())
 
@@ -149,28 +156,25 @@ def main(STGFile_path):
                         lockedAndLoaded=0
 
                         try:
-                            ACFile = open(FG_ROOT + splitLine[1], "r")
+                            ACFile = FG_ROOT + splitLine[1]
                             processACFile(ACFile, splitExtension, splitLine)
                             lockedAndLoaded = 1
-                            ACFile.close()
                         except IOError:
                             lockedAndLoaded = 0
 
                         if lockedAndLoaded == 0:
                             try:
-                                ACFile = open(FG_SCENERY + splitLine[1], "r")
+                                ACFile = FG_SCENERY + splitLine[1]
                                 processACFile(ACFile, splitExtension, splitLine)
                                 lockedAndLoaded = 1
-                                ACFile.close()
                             except IOError:
                                 lockedAndLoaded = 0
 
                         if lockedAndLoaded == 0:
                             try:
-                                ACFile = open(os.path.dirname(sys.argv[1]) + "/" + splitLine[1], "r")
+                                ACFile = os.path.dirname(sys.argv[1]) + "/" + splitLine[1]
                                 processACFile(ACFile, splitExtension, splitLine)
                                 lockedAndLoaded = 1
-                                ACFile.close()
                             except IOError:
                                 print("Could not open " + splitLine[1])
                                 exit
