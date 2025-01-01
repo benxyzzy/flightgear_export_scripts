@@ -132,11 +132,11 @@ def processACFile(ACFile, splitExtension, splitLine):
                         if len(splitLine2) > 1:
                             mainBody.append("mat " + str(materialsRelationship[int(splitLine2[1])]))
                     elif splitLine2[0] == "texture" and len(splitLine2) > 1:
-                        orig_path = splitLine2[1]
+                        orig_path = splitLine2[1].strip('"')
                         base_path = Path(ACFile).parent
                         abs_path = (base_path / orig_path).resolve()
 
-                        mainBody.append(f"texture {abs_path}")
+                        mainBody.append(f'texture "{abs_path}"')
                     else:
                         mainBody.append(line2.strip())
 
@@ -159,7 +159,6 @@ def main(STGFile_path):
                             ACFile = FG_ROOT + splitLine[1]
                             processACFile(ACFile, splitExtension, splitLine)
                             lockedAndLoaded = 1
-                            ACFile.close()
                         except IOError:
                             lockedAndLoaded = 0
 
@@ -168,7 +167,6 @@ def main(STGFile_path):
                                 ACFile = FG_SCENERY + splitLine[1]
                                 processACFile(ACFile, splitExtension, splitLine)
                                 lockedAndLoaded = 1
-                                ACFile.close()
                             except IOError:
                                 lockedAndLoaded = 0
 
@@ -177,7 +175,6 @@ def main(STGFile_path):
                                 ACFile = os.path.dirname(sys.argv[1]) + "/" + splitLine[1]
                                 processACFile(ACFile, splitExtension, splitLine)
                                 lockedAndLoaded = 1
-                                ACFile.close()
                             except IOError:
                                 print("Could not open " + splitLine[1])
                                 exit
