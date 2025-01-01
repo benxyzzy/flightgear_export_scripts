@@ -149,7 +149,7 @@ def main(STGFile_path):
                         lockedAndLoaded=0
 
                         try:
-                            ACFile = open(os.path.join(FG_ROOT, splitLine[1]), "r")
+                            ACFile = open(FG_ROOT + splitLine[1], "r")
                             processACFile(ACFile, splitExtension, splitLine)
                             lockedAndLoaded = 1
                             ACFile.close()
@@ -158,7 +158,7 @@ def main(STGFile_path):
 
                         if lockedAndLoaded == 0:
                             try:
-                                ACFile = open(os.path.join(FG_SCENERY, splitLine[1]), "r")
+                                ACFile = open(FG_SCENERY + splitLine[1], "r")
                                 processACFile(ACFile, splitExtension, splitLine)
                                 lockedAndLoaded = 1
                                 ACFile.close()
@@ -167,7 +167,7 @@ def main(STGFile_path):
 
                         if lockedAndLoaded == 0:
                             try:
-                                ACFile = open(os.path.join(os.path.dirname(sys.argv[1]), splitLine[1]), "r")
+                                ACFile = open(os.path.dirname(sys.argv[1]) + "/" + splitLine[1], "r")
                                 processACFile(ACFile, splitExtension, splitLine)
                                 lockedAndLoaded = 1
                                 ACFile.close()
