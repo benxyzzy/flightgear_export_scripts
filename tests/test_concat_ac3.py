@@ -1,3 +1,7 @@
+"""
+These tests rely on your FG_ROOT containing the file in the ACFilePath variable.
+"""
+
 import os
 from pathlib import Path
 
