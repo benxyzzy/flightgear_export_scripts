@@ -51,7 +51,7 @@ def test_scale_factor(monkeypatch):
 
     # Test that SCALE_FACTOR has applied correctly by reversing it,
     # and checking that the (original) verts we get back are identical again
-    orig_verts = reverse_scale_factor(verts, divided=True)
+    orig_verts = reverse_scale_factor(verts)
 
     expected = next(iter(orig_verts.values()))  # just take one to compare against, we don't care which one
     for scale_factor, verts_list in orig_verts.items():

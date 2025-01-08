@@ -28,7 +28,7 @@ def parse_verts_from_ac(f):
     return verts
 
 
-def reverse_scale_factor(scale_factor_verts_dict, divided=False):
+def reverse_scale_factor(scale_factor_verts_dict):
     """
     If you apply different scale factors to a list of verts,
     and store them in a dict with the scale factor as the key,
@@ -44,19 +44,13 @@ def reverse_scale_factor(scale_factor_verts_dict, divided=False):
          '0.05': [[129.930058, 104.69998399999999, 964.6286779999999],
                   [129.930058, 1.07406, 964.6286779999999],
                   [-130.06996199999998, 1.07408, 964.6286779999999]]}
-    :param divided: How the original scaling to be reversed was applied: by multiplying (default) or dividing.
     :returns: a dict with the same format and keys, but where the scaling on each element has been reversed.
     """
-    if divided:
-        op = operator.mul
-    else:
-        op = operator.truediv
-
     orig_verts = {}
     for scale_factor, verts_list in scale_factor_verts_dict.items():
         sf = float(scale_factor)
         orig_verts[scale_factor] = [
-            [op(v, sf) for v in verts]
+            [v/sf for v in verts]
             for verts in verts_list
         ]
 

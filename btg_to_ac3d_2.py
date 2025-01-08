@@ -234,7 +234,11 @@ class BTG:
 
       for n in range(0, int(nbytes/12)):    # One vertex is 12 bytes (3 * 4 bytes)
         (v_x, v_y, v_z) = unpack("<fff", data[n*12:(n+1)*12])
-        self.vertices.append({"x":scale_factor*v_x, "y":scale_factor*v_y, "z":scale_factor*v_z})
+        if scale_factor == 1:
+            # No scaling required
+            self.vertices.append({"x":v_x, "y":v_y, "z":v_z})
+        else:
+            self.vertices.append({"x":scale_factor*v_x, "y":scale_factor*v_y, "z":scale_factor*v_z})
 
     elif objtype == NORMALLIST:
       for n in range(0, int(nbytes/3)):    # One normal is 3 bytes ( 3 * 1 )

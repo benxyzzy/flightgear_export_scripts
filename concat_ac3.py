@@ -55,8 +55,12 @@ def processACFile(ACFilePath, splitExtension, splitLine, globalMaterials=None, m
             if numvert is not None:
                 # We're in a vert block
                 scale_factor = float(os.environ.get("SCALE_FACTOR", "0.001"))
-                vert = [float(el)/scale_factor for el in line2.strip().split(" ")]  # dividing, opposite of btg_to_ac3d_2
-                mainBody.append(" ".join([str(el) for el in vert]))
+                if scale_factor == 1:
+                    # No scaling required so leave the line of text unchanged
+                    mainBody.append(line2.strip())
+                else:
+                    vert = [scale_factor*float(el) for el in line2.strip().split(" ")]
+                    mainBody.append(" ".join([str(el) for el in vert]))
                 verts_written += 1
                 if verts_written == numvert:
                     # end of block of verts
