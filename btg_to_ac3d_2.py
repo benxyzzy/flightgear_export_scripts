@@ -45,46 +45,6 @@ MaterialListGreen = { }
 MaterialListAlpha = { }
 
 class BTG:
-  f = None
-  mesh = None
-  scn = None
-
-  name = ""
-  base = ""
-  index = 0
-
-  x = 0
-  y = 0
-  lat = 0
-  lon = 0
-  center_lat = 0
-  center_lon = 0
-
-  boundingspheres = []
-  vertices = []
-  normals = []
-  texcoords = []
-  colors = []
-  points = []
-  faces = []
-
-  faceidx = []
-  normalidx = []
-  texcoordidx = []
-  coloridx = []
-
-  objvertices = []
-
-  nobjects = 0
-  objects = []
-
-  readers = []
-  materials = []
-  material = ""
-  materialname = ""
-
-  matrix = None
-
 # Helper functions
 
   # Returns the tile width in degrees on current latitude
@@ -584,6 +544,46 @@ class BTG:
 
   # Main loader
   def __init__(self, path, outfile, batch = False):
+    self.f = None
+    self.mesh = None
+    self.scn = None
+
+    self.name = ""
+    self.base = ""
+    self.index = 0
+
+    self.x = 0
+    self.y = 0
+    self.lat = 0
+    self.lon = 0
+    self.center_lat = 0
+    self.center_lon = 0
+
+    self.boundingspheres = []
+    self.vertices = []
+    self.normals = []
+    self.texcoords = []
+    self.colors = []
+    self.points = []
+    self.faces = []
+
+    self.faceidx = []
+    self.normalidx = []
+    self.texcoordidx = []
+    self.coloridx = []
+
+    self.objvertices = []
+
+    self.nobjects = 0
+    self.objects = []
+
+    self.readers = []
+    self.materials = []
+    self.material = ""
+    self.materialname = ""
+
+    self.matrix = None
+
     if batch:
       try:
         files= [ f for f in os.listdir(path) if f.lower().endswith('.btg.gz') or f.lower().endswith('.btg')]
