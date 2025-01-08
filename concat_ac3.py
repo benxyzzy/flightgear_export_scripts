@@ -7,9 +7,6 @@ import os
 from pathlib import Path
 import sys
 
-globalMaterials = []
-mainBody = []
-numberOfObjects = 0
 
 FG_ROOT = os.environ.get("FG_ROOT", "/usr/share/games/flightgear/")
 
@@ -43,10 +40,11 @@ def geodToCart(lat, lon, alt):
     z = (h + n - e2 * n) * sphi
     return x, y, z
 
-def processACFile(ACFilePath, splitExtension, splitLine):
-    global globalMaterials
-    global mainBody
-    global numberOfObjects
+def processACFile(ACFilePath, splitExtension, splitLine, globalMaterials=None, mainBody=None, numberOfObjects=0):
+    if globalMaterials is None:
+        globalMaterials = []
+    if mainBody is None:
+        mainBody = []
 
     materialsRelationship = []
 
@@ -144,7 +142,12 @@ def processACFile(ACFilePath, splitExtension, splitLine):
                         mainBody.append(line2.strip())
     ACFile.close()
 
+    return globalMaterials, mainBody, numberOfObjects
+
 def main(STGFile_path):
+    globalMaterials = []
+    mainBody = []
+    numberOfObjects = 0
 
     if FG_ROOT is not None:
         # Open a file
@@ -161,7 +164,8 @@ def main(STGFile_path):
 
                         try:
                             ACFilePath = FG_ROOT + splitLine[1]
-                            processACFile(ACFilePath, splitExtension, splitLine)
+                            globalMaterials, mainBody, numberOfObjects = processACFile(
+                                ACFilePath, splitExtension, splitLine, globalMaterials, mainBody, numberOfObjects)
                             lockedAndLoaded = 1
                         except IOError:
                             lockedAndLoaded = 0
@@ -169,7 +173,8 @@ def main(STGFile_path):
                         if lockedAndLoaded == 0:
                             try:
                                 ACFilePath = FG_SCENERY + splitLine[1]
-                                processACFile(ACFilePath, splitExtension, splitLine)
+                                globalMaterials, mainBody, numberOfObjects = processACFile(
+                                    ACFilePath, splitExtension, splitLine, globalMaterials, mainBody, numberOfObjects)
                                 lockedAndLoaded = 1
                             except IOError:
                                 lockedAndLoaded = 0
@@ -177,7 +182,8 @@ def main(STGFile_path):
                         if lockedAndLoaded == 0:
                             try:
                                 ACFilePath = os.path.dirname(sys.argv[1]) + "/" + splitLine[1]
-                                processACFile(ACFilePath, splitExtension, splitLine)
+                                globalMaterials, mainBody, numberOfObjects = processACFile(
+                                    ACFilePath, splitExtension, splitLine, globalMaterials, mainBody, numberOfObjects)
                                 lockedAndLoaded = 1
                             except IOError:
                                 print("Could not open " + splitLine[1])
