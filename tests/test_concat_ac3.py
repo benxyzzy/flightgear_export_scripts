@@ -3,13 +3,14 @@ from pathlib import Path
 import pytest
 
 import concat_ac3
+from .utils import parse_verts_from_ac
 
 #Authors: benxyzzy
 
 
 @pytest.fixture()
 def stg_filepath():
-    return Path("./958401-test.stg").resolve()
+    return (Path(__file__).parent / "958401-test.stg").resolve()
 
 
 def test_concat_ac3(stg_filepath, monkeypatch):
@@ -26,4 +27,13 @@ def test_concat_ac3(stg_filepath, monkeypatch):
 
 
 def test_scale_factor():
-    pass
+    ACFilePath = '/home/x/PycharmProjects/flightgear_export_scripts/fg_install/fgdata/fgdata/Scenery/SceneryPack.BIKF/Models/Airport/thangar.ac'
+    splitExtension = ['Models/Airport/thangar', 'ac']
+    splitLine = ['OBJECT_SHARED', 'Models/Airport/thangar.ac', '-121.60000000', '37.0810000', '84.0', '204']
+
+    globalMaterials, mainBody, numberOfObjects = concat_ac3.processACFile(ACFilePath, splitExtension, splitLine)
+
+    verts = parse_verts_from_ac(mainBody)
+
+    from pprint import pprint
+    pprint(verts)

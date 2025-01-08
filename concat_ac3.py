@@ -157,6 +157,8 @@ def main(STGFile_path):
             splitLine = line.strip().split(" ");
             if len(splitLine) > 1:
                 if splitLine[0] == "OBJECT_SHARED":
+                    # TODO: for 958401-test.stg, this will mean splitExtension[0] == 'Models/Airport/thangar'
+                    # Is that correct, or should it just be splitExtension[0] == 'thangar' ?
                     splitExtension = splitLine[1].split(".")
                     if splitExtension[len(splitExtension) - 1] == "ac":
                         # print(splitLine[1]) #ac file name

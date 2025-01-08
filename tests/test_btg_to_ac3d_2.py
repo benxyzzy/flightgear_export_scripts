@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 
 from btg_to_ac3d_2 import main
+from .utils import parse_verts_from_ac
 
 
 def find_file(file_name, directory):
@@ -37,31 +38,13 @@ def test_scale_factor(btg_filepath, tmp_path, monkeypatch):
 
     verts = {}
     for scale_factor in ("0.001", "0.05", "0.01", "0.1", "1", "2", "3"):
-        verts[scale_factor] = []
         monkeypatch.setenv("SCALE_FACTOR", scale_factor)
 
         outpath = tmp_path / f"test_scale_factor_{scale_factor}.ac"
         main(str(btg_filepath), str(outpath))
 
-        # Parse out the verts for later comparison
-        numvert = None
-        verts_stored = None
         with open(outpath, "r") as f:
-            for line in f:
-                if numvert is not None:
-                    # We're in a block of verts
-                    verts[scale_factor].append([float(el) for el in line.split()])
-                    verts_stored += 1
-                    if verts_stored == numvert:
-                        # end of block of verts
-                        numvert = None
-                        verts_stored = None
-                else:
-                    # We're not in a block of verts
-                    if line.startswith("numvert"):
-                        # block of verts found
-                        numvert = int(line.split()[1])
-                        verts_stored = 0
+            verts[scale_factor] = parse_verts_from_ac(f)
 
     # Test that SCALE_FACTOR has applied correctly by reversing it,
     # and checking that the (original) verts we get back are identical again
@@ -76,7 +59,6 @@ def test_scale_factor(btg_filepath, tmp_path, monkeypatch):
     expected = next(iter(orig_verts.values()))  # just take one to compare against, we don't care which one
     for scale_factor, verts_list in orig_verts.items():
         for i in range(len(verts_list)):
-            assert (
-                expected[i] == pytest.approx(verts_list[i]),  # approx due to float rounding error
+            # approx due to float rounding error
+            assert expected[i] == pytest.approx(verts_list[i]), \
                 f"Expected verts to be identical for scale factor {scale_factor}"
-            )
