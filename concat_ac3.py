@@ -17,7 +17,7 @@ def usage():
     return
 
 
-# Convert geoidic coordinates to cartesian
+# Convert geodetic coordinates to Cartesian
 def geodToCart(lat, lon, alt):
     flattening = 298.257223563
     squash = (1 - 1 / flattening)
@@ -48,11 +48,30 @@ def processACFile(ACFilePath, splitExtension, splitLine, globalMaterials=None, m
 
     materialsRelationship = []
 
-    ACFile = open(ACFilePath, "r")
+    numvert = None
+    verts_written = None
+    with open(ACFilePath, "r") as ACFile:
+        for line2 in ACFile:
+            if numvert is not None:
+                # We're in a vert block
+                scale_factor = float(os.environ.get("SCALE_FACTOR", "0.001"))
+                vert = [float(el)/scale_factor for el in line2.strip().split(" ")]  # dividing, opposite of btg_to_ac3d_2
+                mainBody.append(" ".join([str(el) for el in vert]))
+                verts_written += 1
+                if verts_written == numvert:
+                    # end of block of verts
+                    numvert = None
+                    verts_written = None
+            elif line2.strip().startswith("numvert "):
+                # Start of vert block
+                splitLine2 = line2.strip().split(" ")
+                numvert = int(splitLine2[1])
+                verts_written = 0
 
-    for line2 in ACFile:
-        if line2.strip() != "AC3Db":
-            if line2.strip() == "OBJECT world":
+                mainBody.append(line2.strip())
+            elif line2.strip() == "AC3Db":
+                continue
+            elif line2.strip() == "OBJECT world":
                 mainBody.append("OBJECT poly")
                 mainBody.append("name \"_" + str(numberOfObjects) + "_" + splitExtension[0] + "\"")
                 numberOfObjects = numberOfObjects + 1
@@ -79,7 +98,7 @@ def processACFile(ACFilePath, splitExtension, splitLine, globalMaterials=None, m
                 cr = math.cos(pitch)
                 sr = math.sin(pitch)
 
-                rotationMatrix = [[0 for x in range(3)] for y in range(3)] 
+                rotationMatrix = [[0 for x in range(3)] for y in range(3)]
                 rotationMatrix[0][0] = cd * cr
                 rotationMatrix[0][1] = cd * sr * sa - sd * ca
                 rotationMatrix[0][2] = cd * sr * ca + sd * sa
@@ -115,7 +134,7 @@ def processACFile(ACFilePath, splitExtension, splitLine, globalMaterials=None, m
                     "loc " + str(convertedCoords[1]) + " " + str(convertedCoords[0]) + " " + str(alt))
                 # mainBody.append("loc " + str(lon) + " " + str(lat) + " " + str(rad))
             else:
-                splitLine2 = line2.strip().split(" ");
+                splitLine2 = line2.strip().split(" ")
                 if len(splitLine2) > 0:
                     if splitLine2[0] == "MATERIAL":
                         found = -1
@@ -140,7 +159,6 @@ def processACFile(ACFilePath, splitExtension, splitLine, globalMaterials=None, m
                         mainBody.append(f'texture "{abs_path}"')
                     else:
                         mainBody.append(line2.strip())
-    ACFile.close()
 
     return globalMaterials, mainBody, numberOfObjects
 

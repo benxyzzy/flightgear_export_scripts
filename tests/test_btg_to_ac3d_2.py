@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from btg_to_ac3d_2 import main
-from .utils import parse_verts_from_ac
+from .utils import parse_verts_from_ac, reverse_scale_factor
 
 
 def find_file(file_name, directory):
@@ -48,13 +48,7 @@ def test_scale_factor(btg_filepath, tmp_path, monkeypatch):
 
     # Test that SCALE_FACTOR has applied correctly by reversing it,
     # and checking that the (original) verts we get back are identical again
-    orig_verts = {}
-    for scale_factor, verts_list in verts.items():
-        sf = float(scale_factor)
-        orig_verts[scale_factor] = [
-            [v/sf for v in verts]
-            for verts in verts_list
-        ]
+    orig_verts = reverse_scale_factor(verts)
 
     expected = next(iter(orig_verts.values()))  # just take one to compare against, we don't care which one
     for scale_factor, verts_list in orig_verts.items():
