@@ -7,9 +7,6 @@ import os
 from pathlib import Path
 import sys
 
-globalMaterials = []
-mainBody = []
-numberOfObjects = 0
 
 FG_ROOT = os.environ.get("FG_ROOT", "/usr/share/games/flightgear/")
 
@@ -20,7 +17,7 @@ def usage():
     return
 
 
-# Convert geoidic coordinates to cartesian
+# Convert geodetic coordinates to Cartesian
 def geodToCart(lat, lon, alt):
     flattening = 298.257223563
     squash = (1 - 1 / flattening)
@@ -43,18 +40,42 @@ def geodToCart(lat, lon, alt):
     z = (h + n - e2 * n) * sphi
     return x, y, z
 
-def processACFile(ACFilePath, splitExtension, splitLine):
-    global globalMaterials
-    global mainBody
-    global numberOfObjects
+def processACFile(ACFilePath, splitExtension, splitLine, globalMaterials=None, mainBody=None, numberOfObjects=0):
+    if globalMaterials is None:
+        globalMaterials = []
+    if mainBody is None:
+        mainBody = []
+    scale_factor = float(os.environ.get("SCALE_FACTOR", "0.001"))
 
     materialsRelationship = []
 
-    ACFile = open(ACFilePath, "r")
+    numvert = None
+    verts_written = None
+    with open(ACFilePath, "r") as ACFile:
+        for line2 in ACFile:
+            if numvert is not None:
+                # We're in a vert block
+                if scale_factor == 1:
+                    # No scaling required so leave the line of text unchanged
+                    mainBody.append(line2.strip())
+                else:
+                    vert = [scale_factor*float(el) for el in line2.strip().split(" ")]
+                    mainBody.append(" ".join([str(el) for el in vert]))
+                verts_written += 1
+                if verts_written == numvert:
+                    # end of block of verts
+                    numvert = None
+                    verts_written = None
+            elif line2.strip().startswith("numvert "):
+                # Start of vert block
+                splitLine2 = line2.strip().split(" ")
+                numvert = int(splitLine2[1])
+                verts_written = 0
 
-    for line2 in ACFile:
-        if line2.strip() != "AC3Db":
-            if line2.strip() == "OBJECT world":
+                mainBody.append(line2.strip())
+            elif line2.strip() == "AC3Db":
+                continue
+            elif line2.strip() == "OBJECT world":
                 mainBody.append("OBJECT poly")
                 mainBody.append("name \"_" + str(numberOfObjects) + "_" + splitExtension[0] + "\"")
                 numberOfObjects = numberOfObjects + 1
@@ -81,7 +102,7 @@ def processACFile(ACFilePath, splitExtension, splitLine):
                 cr = math.cos(pitch)
                 sr = math.sin(pitch)
 
-                rotationMatrix = [[0 for x in range(3)] for y in range(3)] 
+                rotationMatrix = [[0 for x in range(3)] for y in range(3)]
                 rotationMatrix[0][0] = cd * cr
                 rotationMatrix[0][1] = cd * sr * sa - sd * ca
                 rotationMatrix[0][2] = cd * sr * ca + sd * sa
@@ -105,6 +126,11 @@ def processACFile(ACFilePath, splitExtension, splitLine):
                 #temp = geodToCart(37.5, -122.7, 1000)
 
                 convertedCoords = geodToCart(lat, lon, alt)
+                if scale_factor == 1:
+                    scaled_alt = alt
+                else:
+                    convertedCoords = [scale_factor*float(el) for el in convertedCoords]
+                    scaled_alt = scale_factor*alt
 
                 #mainBody.append(
                 #    "loc " + str(convertedCoords[2]) + " " + str(convertedCoords[1]) + " " + str(
@@ -114,10 +140,10 @@ def processACFile(ACFilePath, splitExtension, splitLine):
                 #    alt))
 
                 mainBody.append(
-                    "loc " + str(convertedCoords[1]) + " " + str(convertedCoords[0]) + " " + str(alt))
+                    "loc " + str(convertedCoords[1]) + " " + str(convertedCoords[0]) + " " + str(scaled_alt))
                 # mainBody.append("loc " + str(lon) + " " + str(lat) + " " + str(rad))
             else:
-                splitLine2 = line2.strip().split(" ");
+                splitLine2 = line2.strip().split(" ")
                 if len(splitLine2) > 0:
                     if splitLine2[0] == "MATERIAL":
                         found = -1
@@ -142,9 +168,13 @@ def processACFile(ACFilePath, splitExtension, splitLine):
                         mainBody.append(f'texture "{abs_path}"')
                     else:
                         mainBody.append(line2.strip())
-    ACFile.close()
+
+    return globalMaterials, mainBody, numberOfObjects
 
 def main(STGFile_path):
+    globalMaterials = []
+    mainBody = []
+    numberOfObjects = 0
 
     if FG_ROOT is not None:
         # Open a file
@@ -154,6 +184,8 @@ def main(STGFile_path):
             splitLine = line.strip().split(" ");
             if len(splitLine) > 1:
                 if splitLine[0] == "OBJECT_SHARED":
+                    # TODO: for 958401-test.stg, this will mean splitExtension[0] == 'Models/Airport/thangar'
+                    # Is that correct, or should it just be splitExtension[0] == 'thangar' ?
                     splitExtension = splitLine[1].split(".")
                     if splitExtension[len(splitExtension) - 1] == "ac":
                         # print(splitLine[1]) #ac file name
@@ -161,7 +193,8 @@ def main(STGFile_path):
 
                         try:
                             ACFilePath = FG_ROOT + splitLine[1]
-                            processACFile(ACFilePath, splitExtension, splitLine)
+                            globalMaterials, mainBody, numberOfObjects = processACFile(
+                                ACFilePath, splitExtension, splitLine, globalMaterials, mainBody, numberOfObjects)
                             lockedAndLoaded = 1
                         except IOError:
                             lockedAndLoaded = 0
@@ -169,7 +202,8 @@ def main(STGFile_path):
                         if lockedAndLoaded == 0:
                             try:
                                 ACFilePath = FG_SCENERY + splitLine[1]
-                                processACFile(ACFilePath, splitExtension, splitLine)
+                                globalMaterials, mainBody, numberOfObjects = processACFile(
+                                    ACFilePath, splitExtension, splitLine, globalMaterials, mainBody, numberOfObjects)
                                 lockedAndLoaded = 1
                             except IOError:
                                 lockedAndLoaded = 0
@@ -177,7 +211,8 @@ def main(STGFile_path):
                         if lockedAndLoaded == 0:
                             try:
                                 ACFilePath = os.path.dirname(sys.argv[1]) + "/" + splitLine[1]
-                                processACFile(ACFilePath, splitExtension, splitLine)
+                                globalMaterials, mainBody, numberOfObjects = processACFile(
+                                    ACFilePath, splitExtension, splitLine, globalMaterials, mainBody, numberOfObjects)
                                 lockedAndLoaded = 1
                             except IOError:
                                 print("Could not open " + splitLine[1])

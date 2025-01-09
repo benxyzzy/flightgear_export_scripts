@@ -45,46 +45,6 @@ MaterialListGreen = { }
 MaterialListAlpha = { }
 
 class BTG:
-  f = None
-  mesh = None
-  scn = None
-
-  name = ""
-  base = ""
-  index = 0
-
-  x = 0
-  y = 0
-  lat = 0
-  lon = 0
-  center_lat = 0
-  center_lon = 0
-
-  boundingspheres = []
-  vertices = []
-  normals = []
-  texcoords = []
-  colors = []
-  points = []
-  faces = []
-
-  faceidx = []
-  normalidx = []
-  texcoordidx = []
-  coloridx = []
-
-  objvertices = []
-
-  nobjects = 0
-  objects = []
-
-  readers = []
-  materials = []
-  material = ""
-  materialname = ""
-
-  matrix = None
-
 # Helper functions
 
   # Returns the tile width in degrees on current latitude
@@ -270,9 +230,15 @@ class BTG:
       self.boundingspheres.append({"x":bs_x, "y":bs_y, "z":bs_z, "radius":bs_rad})
 
     elif objtype == VERTEXLIST:
+      scale_factor = float(os.environ.get("SCALE_FACTOR", "0.001"))
+
       for n in range(0, int(nbytes/12)):    # One vertex is 12 bytes (3 * 4 bytes)
         (v_x, v_y, v_z) = unpack("<fff", data[n*12:(n+1)*12])
-        self.vertices.append({"x":v_x/1000, "y":v_y/1000, "z":v_z/1000})
+        if scale_factor == 1:
+            # No scaling required
+            self.vertices.append({"x":v_x, "y":v_y, "z":v_z})
+        else:
+            self.vertices.append({"x":scale_factor*v_x, "y":scale_factor*v_y, "z":scale_factor*v_z})
 
     elif objtype == NORMALLIST:
       for n in range(0, int(nbytes/3)):    # One normal is 3 bytes ( 3 * 1 )
@@ -582,6 +548,46 @@ class BTG:
 
   # Main loader
   def __init__(self, path, outfile, batch = False):
+    self.f = None
+    self.mesh = None
+    self.scn = None
+
+    self.name = ""
+    self.base = ""
+    self.index = 0
+
+    self.x = 0
+    self.y = 0
+    self.lat = 0
+    self.lon = 0
+    self.center_lat = 0
+    self.center_lon = 0
+
+    self.boundingspheres = []
+    self.vertices = []
+    self.normals = []
+    self.texcoords = []
+    self.colors = []
+    self.points = []
+    self.faces = []
+
+    self.faceidx = []
+    self.normalidx = []
+    self.texcoordidx = []
+    self.coloridx = []
+
+    self.objvertices = []
+
+    self.nobjects = 0
+    self.objects = []
+
+    self.readers = []
+    self.materials = []
+    self.material = ""
+    self.materialname = ""
+
+    self.matrix = None
+
     if batch:
       try:
         files= [ f for f in os.listdir(path) if f.lower().endswith('.btg.gz') or f.lower().endswith('.btg')]
@@ -621,61 +627,71 @@ def usage():
   return
 
 
-# Main code
-if len(sys.argv) != 3:
-  usage()
-  sys.exit()
+def main(path, outpath):
+  global MaterialList
+  global MaterialListRed
+  global MaterialListBlue
+  global MaterialListGreen
+  global MaterialListAlpha
 
-# Find materials node if any
-if FG_ROOT is not None and HAS_XML:
-  try:  # Try to load materials.xml
-    matxml = xml.dom.minidom.parse(FG_ROOT + "Materials/default/" + "global-summer.xml")
+  # Find materials node if any
+  if FG_ROOT is not None and HAS_XML:
+    try:  # Try to load materials.xml
+      matxml = xml.dom.minidom.parse(FG_ROOT + "Materials/default/" + "global-summer.xml")
 
-    proplist = matxml.getElementsByTagName("PropertyList")[0]
+      proplist = matxml.getElementsByTagName("PropertyList")[0]
 
-    if proplist is not None:
-      mlist = matxml.getElementsByTagName("material")
+      if proplist is not None:
+        mlist = matxml.getElementsByTagName("material")
 
-      if mlist is not None:
-          # Find the material's texture
-          texturepath = None
-          for e in mlist:
-             for nameNode in e.getElementsByTagName("name"):
-                 for tname in nameNode.childNodes:
-                     if tname.nodeType == tname.TEXT_NODE:  # Name was found
-                          for texNode in e.getElementsByTagName("texture"):
-                              for tpath in texNode.childNodes:
-                                  if tpath.nodeType == tpath.TEXT_NODE:  # texture was found
-                                      MaterialList[tname.nodeValue] = tpath.nodeValue  # Store texture path
-                                      break
-                                  for tredNode in e.getElementsByTagName("r"):
-                                        for tred in tredNode.childNodes:
-                                            if tred.nodeType == tred.TEXT_NODE:  # red was found
-                                                MaterialListRed[tname.nodeValue] = tred.nodeValue
-                                                print(tred.nodeValue)
+        if mlist is not None:
+            # Find the material's texture
+            texturepath = None
+            for e in mlist:
+               for nameNode in e.getElementsByTagName("name"):
+                   for tname in nameNode.childNodes:
+                       if tname.nodeType == tname.TEXT_NODE:  # Name was found
+                            for texNode in e.getElementsByTagName("texture"):
+                                for tpath in texNode.childNodes:
+                                    if tpath.nodeType == tpath.TEXT_NODE:  # texture was found
+                                        MaterialList[tname.nodeValue] = tpath.nodeValue  # Store texture path
+                                        break
+                                    for tredNode in e.getElementsByTagName("r"):
+                                          for tred in tredNode.childNodes:
+                                              if tred.nodeType == tred.TEXT_NODE:  # red was found
+                                                  MaterialListRed[tname.nodeValue] = tred.nodeValue
+                                                  print(tred.nodeValue)
+                                                  break
+                                          break  # go for the next red
+                                    for tblueNode in e.getElementsByTagName("b"):
+                                        for tblue in tblueNode.childNodes:
+                                            if tblue.nodeType == tblue.TEXT_NODE:  # blue was found
+                                                MaterialListBlue[tname.nodeValue] = tblue.nodeValue
                                                 break
-                                        break  # go for the next red
-                                  for tblueNode in e.getElementsByTagName("b"):
-                                      for tblue in tblueNode.childNodes:
-                                          if tblue.nodeType == tblue.TEXT_NODE:  # blue was found
-                                              MaterialListBlue[tname.nodeValue] = tblue.nodeValue
-                                              break
-                                      break  # go for the next blue
-                                  for tgreenNode in e.getElementsByTagName("g"):
-                                      for tgreen in tgreenNode.childNodes:
-                                          if tgreen.nodeType == tgreen.TEXT_NODE:  # green was found
-                                              MaterialListGreen[tname.nodeValue] = tgreen.nodeValue
-                                              break
-                                      break  # go for the next green
-                                  for talphaNode in e.getElementsByTagName("a"):
-                                      for talpha in talphaNode.childNodes:
-                                          if talpha.nodeType == talpha.TEXT_NODE:  # alpha was found
-                                              MaterialListAlpha[tname.nodeValue] = talpha.nodeValue
-                                              break
-                                      break  # go for the next alpha
-  except:
-      print("Could not load materials.xml")
+                                        break  # go for the next blue
+                                    for tgreenNode in e.getElementsByTagName("g"):
+                                        for tgreen in tgreenNode.childNodes:
+                                            if tgreen.nodeType == tgreen.TEXT_NODE:  # green was found
+                                                MaterialListGreen[tname.nodeValue] = tgreen.nodeValue
+                                                break
+                                        break  # go for the next green
+                                    for talphaNode in e.getElementsByTagName("a"):
+                                        for talpha in talphaNode.childNodes:
+                                            if talpha.nodeType == talpha.TEXT_NODE:  # alpha was found
+                                                MaterialListAlpha[tname.nodeValue] = talpha.nodeValue
+                                                break
+                                        break  # go for the next alpha
+    except Exception as ex:
+      print(f"Could not load materials.xml: {ex}")
       MaterialList = { }
 
-print("Loading file", sys.argv[1])
-import_obj(sys.argv[1], sys.argv[2])
+  print("Loading file", path)
+  import_obj(path, outpath)
+
+
+if __name__ == "__main__":
+  if len(sys.argv) != 3:
+    usage()
+    sys.exit()
+
+  main(sys.argv[1], sys.argv[2])

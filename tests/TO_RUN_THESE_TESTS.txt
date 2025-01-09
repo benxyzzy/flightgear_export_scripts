@@ -16,4 +16,4 @@ Then you can run the following tests
 
 	testPlacement.sh is for checking the geometry is correct for the resulting AC3D. Placement is manually verified using fgfs from flightgear.
 	buildLondon.sh converts some scenery of London, UK to AC3D files
-	test_concat_ac3.py runs some python tests on the code
+	test_btg_to_ac3d_2.py and test_concat_ac3.py run some automated Python tests on the code. test_concat_ac3() is good for test-running overall concat_ac3.py functionality.
