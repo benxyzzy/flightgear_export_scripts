@@ -23,7 +23,7 @@ find "${FG_ROOT}Scenery/London/Terrain" -maxdepth 2 -mindepth 2 -type d | while 
 
 
 		mkdir -p "$(printf "%sScenery/SceneryPack.BIKF/Master/%s\n" "${FG_ROOT}" "$(printf "%s" $tile | rev | cut -d "/" -f 1-2 | rev)")"
-		FG_ROOT="${FG_ROOT}" FG_SCENERY="${FG_ROOT}Scenery/SceneryPack.BIKF/" python3 ${thepwd}/../btg_to_ac3d_2.py "${abtg}" "${FG_ROOT}Scenery/SceneryPack.BIKF/Master/$(printf "%s" "${abtg}" | rev | cut -d "/" -f 1-3 | rev | cut -d "." -f 1)-objects.ac"
+		SCALE_FACTOR="1" FG_ROOT="${FG_ROOT}" FG_SCENERY="${FG_ROOT}Scenery/SceneryPack.BIKF/" python3 ${thepwd}/../btg_to_ac3d_2.py "${abtg}" "${FG_ROOT}Scenery/SceneryPack.BIKF/Master/$(printf "%s" "${abtg}" | rev | cut -d "/" -f 1-3 | rev | cut -d "." -f 1)-objects.ac"
 
 		masterstg="${FG_ROOT}Scenery/SceneryPack.BIKF/Master/$(printf "%s" "${abtg}" | rev | cut -d "/" -f 1-3 | rev | cut -d "." -f 1).stg"
 
@@ -66,7 +66,7 @@ find "${FG_ROOT}Scenery/London/Terrain" -maxdepth 2 -mindepth 2 -type d | while 
 		fi
 
 		mkdir -p "$(printf "%s/Final/AC3D/%s\n" "${thepwd}" "$(printf "%s" $tile | rev | cut -d "/" -f 1-2 | rev)")"
-		FG_ROOT="${FG_ROOT}" FG_SCENERY="${FG_ROOT}Scenery/SceneryPack.BIKF/" python3 ${thepwd}/../concat_ac3.py "$masterstg" >> "${thepwd}/Final/AC3D/$(printf "%s" "${astg}" | rev | cut -d "/" -f 1-3 | rev | cut -d "." -f 1).ac"
+		SCALE_FACTOR="0.001" FG_ROOT="${FG_ROOT}" FG_SCENERY="${FG_ROOT}Scenery/SceneryPack.BIKF/" python3 ${thepwd}/../concat_ac3.py "$masterstg" >> "${thepwd}/Final/AC3D/$(printf "%s" "${astg}" | rev | cut -d "/" -f 1-3 | rev | cut -d "." -f 1).ac"
 	done
 done
 
