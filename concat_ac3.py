@@ -45,6 +45,7 @@ def processACFile(ACFilePath, splitExtension, splitLine, globalMaterials=None, m
         globalMaterials = []
     if mainBody is None:
         mainBody = []
+    scale_factor = float(os.environ.get("SCALE_FACTOR", "0.001"))
 
     materialsRelationship = []
 
@@ -54,7 +55,6 @@ def processACFile(ACFilePath, splitExtension, splitLine, globalMaterials=None, m
         for line2 in ACFile:
             if numvert is not None:
                 # We're in a vert block
-                scale_factor = float(os.environ.get("SCALE_FACTOR", "0.001"))
                 if scale_factor == 1:
                     # No scaling required so leave the line of text unchanged
                     mainBody.append(line2.strip())
@@ -126,6 +126,11 @@ def processACFile(ACFilePath, splitExtension, splitLine, globalMaterials=None, m
                 #temp = geodToCart(37.5, -122.7, 1000)
 
                 convertedCoords = geodToCart(lat, lon, alt)
+                if scale_factor == 1:
+                    scaled_alt = alt
+                else:
+                    convertedCoords = [scale_factor*float(el) for el in convertedCoords]
+                    scaled_alt = scale_factor*alt
 
                 #mainBody.append(
                 #    "loc " + str(convertedCoords[2]) + " " + str(convertedCoords[1]) + " " + str(
@@ -135,7 +140,7 @@ def processACFile(ACFilePath, splitExtension, splitLine, globalMaterials=None, m
                 #    alt))
 
                 mainBody.append(
-                    "loc " + str(convertedCoords[1]) + " " + str(convertedCoords[0]) + " " + str(alt))
+                    "loc " + str(convertedCoords[1]) + " " + str(convertedCoords[0]) + " " + str(scaled_alt))
                 # mainBody.append("loc " + str(lon) + " " + str(lat) + " " + str(rad))
             else:
                 splitLine2 = line2.strip().split(" ")

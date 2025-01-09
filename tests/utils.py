@@ -49,9 +49,14 @@ def reverse_scale_factor(scale_factor_verts_dict):
     orig_verts = {}
     for scale_factor, verts_list in scale_factor_verts_dict.items():
         sf = float(scale_factor)
-        orig_verts[scale_factor] = [
-            [v/sf for v in verts]
-            for verts in verts_list
-        ]
+
+        try:
+            orig_verts[scale_factor] = [
+                [v/sf for v in verts]
+                for verts in verts_list
+            ]
+        except TypeError as ex:  # 'float' object is not iterable
+            # Now we can reverse lists of scalars as well as lists of verts
+            orig_verts[scale_factor] = [v/sf for v in verts_list]
 
     return orig_verts

@@ -42,6 +42,7 @@ def test_scale_factor(monkeypatch):
     splitLine = ['OBJECT_SHARED', 'Models/Airport/thangar.ac', '-121.60000000', '37.0810000', '84.0', '204']
 
     verts = {}
+    locs = {}
     for scale_factor in ("0.001", "0.05", "0.01", "0.1", "1", "2", "3"):
         monkeypatch.setenv("SCALE_FACTOR", scale_factor)
 
@@ -49,13 +50,22 @@ def test_scale_factor(monkeypatch):
 
         verts[scale_factor] = parse_verts_from_ac(mainBody)
 
-    # Test that SCALE_FACTOR has applied correctly by reversing it,
-    # and checking that the (original) verts we get back are identical again
-    orig_verts = reverse_scale_factor(verts)
+        loc_line = next(line for line in mainBody if line.startswith("loc "))
+        locs[scale_factor] = [float(el) for el in loc_line.split()[1:]]
 
-    expected = next(iter(orig_verts.values()))  # just take one to compare against, we don't care which one
+    # Test that SCALE_FACTOR has applied correctly by reversing it,
+    # and checking that the (original) verts and loc params we get back are identical again
+    orig_verts = reverse_scale_factor(verts)
+    orig_locs = reverse_scale_factor(locs)
+
+    expected_vert = next(iter(orig_verts.values()))  # just take one to compare against, we don't care which one
+    expected_loc = next(iter(orig_locs.values()))
     for scale_factor, verts_list in orig_verts.items():
         for i in range(len(verts_list)):
             # approx due to float rounding error
-            assert expected[i] == pytest.approx(verts_list[i]), \
+            assert expected_vert[i] == pytest.approx(verts_list[i]), \
                 f"Expected verts to be identical for scale factor {scale_factor}"
+
+        loc = orig_locs[scale_factor]
+        assert expected_loc == pytest.approx(loc), \
+            f"Expected loc to be identical for scale factor {scale_factor}"
