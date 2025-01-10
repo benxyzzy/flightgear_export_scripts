@@ -52,6 +52,27 @@ def calculate_tile_index (lat, lon):
 
     return index
 
+def calculate_tile_lat_lon(index: int):
+    """
+    Calculate the lat/lon for a tile index (southwest corner)
+    Copied from SimGear SGBucket constructor
+    """
+
+    lon = index >> 14
+    index -= lon << 14
+    lon -= 180
+
+    lat = index >> 6
+    index -= lat << 6
+    lat -= 90
+
+    y = index >> 3
+    index -= y << 3
+
+    x = index
+
+    return lat, lon
+
 #
 # Script entry point
 #
