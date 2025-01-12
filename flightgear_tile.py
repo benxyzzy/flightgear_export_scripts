@@ -7,7 +7,7 @@ USAGE:
 Will print the index to standard output.
 
 David Megginson, 2024-08-05 (Public Domain)
-
+relicenced to GPLv2
 
 """
 
@@ -52,20 +52,49 @@ def calculate_tile_index (lat, lon):
 
     return index
 
+def calculate_tile_lat_lon(index: int):
+    """
+    Calculate the lat/lon for a tile index (southwest corner)
+
+    Copied from SimGear SGBucket constructor (newbucket.cxx;
+    1999 Curtis L. Olson - http://www.flightgear.org/~curt/ was the copyright holder)
+    """
+
+    lon = index >> 14
+    index -= lon << 14
+    lon -= 180
+
+    lat = index >> 6
+    index -= lat << 6
+    lat -= 90
+
+    y = index >> 3
+    index -= y << 3
+
+    x = index
+
+    return lat, lon
+
 #
 # Script entry point
 #
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print("Usage: {} LAT LON".format(sys.argv[0]), file=sys.stderr)
+    if len(sys.argv) == 2:
+        index = int(sys.argv[1])
+        print(*calculate_tile_lat_lon(index))
+    elif len(sys.argv) == 3:
+        lat = float(sys.argv[1])
+        lon = float(sys.argv[2])
+        if lat < -90 or lat > 90:
+            print("Latitude {} out of range".format(lat))
+            exit(1)
+        if lon < -180 or lat > 180:
+            print("Longitude {} out of range".format(lon))
+            exit(1)
+
+        print(calculate_tile_index(lat, lon))
+    else:
+        print(f"Usage:\n  python3 {sys.argv[0]} <lat> <lon>\n  python3 {sys.argv[0]} <index>", file=sys.stderr)
         exit(2)
-    lat = float(sys.argv[1])
-    lon = float(sys.argv[2])
-    if lat < -90 or lat > 90:
-        print("Latitude {} out of range".format(lat))
-        exit(1)
-    if lon < -180 or lat > 180:
-        print("Longitude {} out of range".format(lon))
-        exit(1)
-    print(calculate_tile_index(lat, lon))
+
     exit(0)
