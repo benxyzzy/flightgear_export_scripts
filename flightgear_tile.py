@@ -79,16 +79,22 @@ def calculate_tile_lat_lon(index: int):
 # Script entry point
 #
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print("Usage: {} LAT LON".format(sys.argv[0]), file=sys.stderr)
+    if len(sys.argv) == 2:
+        index = int(sys.argv[1])
+        print(*calculate_tile_lat_lon(index))
+    elif len(sys.argv) == 3:
+        lat = float(sys.argv[1])
+        lon = float(sys.argv[2])
+        if lat < -90 or lat > 90:
+            print("Latitude {} out of range".format(lat))
+            exit(1)
+        if lon < -180 or lat > 180:
+            print("Longitude {} out of range".format(lon))
+            exit(1)
+
+        print(calculate_tile_index(lat, lon))
+    else:
+        print(f"Usage:\n  python3 {sys.argv[0]} <lat> <lon>\n  python3 {sys.argv[0]} <index>", file=sys.stderr)
         exit(2)
-    lat = float(sys.argv[1])
-    lon = float(sys.argv[2])
-    if lat < -90 or lat > 90:
-        print("Latitude {} out of range".format(lat))
-        exit(1)
-    if lon < -180 or lat > 180:
-        print("Longitude {} out of range".format(lon))
-        exit(1)
-    print(calculate_tile_index(lat, lon))
+
     exit(0)
