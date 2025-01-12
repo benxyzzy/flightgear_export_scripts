@@ -7,7 +7,7 @@ USAGE:
 Will print the index to standard output.
 
 David Megginson, 2024-08-05 (Public Domain)
-
+relicenced to GPLv2
 
 """
 
@@ -55,7 +55,9 @@ def calculate_tile_index (lat, lon):
 def calculate_tile_lat_lon(index: int):
     """
     Calculate the lat/lon for a tile index (southwest corner)
-    Copied from SimGear SGBucket constructor
+
+    Copied from SimGear SGBucket constructor (newbucket.cxx;
+    1999 Curtis L. Olson - http://www.flightgear.org/~curt/ was the copyright holder)
     """
 
     lon = index >> 14
