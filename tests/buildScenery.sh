@@ -27,7 +27,7 @@ find "${FG_ROOT}Scenery/London/Terrain" -maxdepth 2 -mindepth 2 -type d | while 
 
 		masterstg="${FG_ROOT}Scenery/SceneryPack.BIKF/Master/$(printf "%s" "${abtg}" | rev | cut -d "/" -f 1-3 | rev | cut -d "." -f 1).stg"
 
-		echo "OBJECT_SHARED "/Master/$(printf "%s" "${abtg}" | rev | cut -d "/" -f 1-3 | rev | cut -d "." -f 1)-objects.ac" 0 0 0 0" >> "$masterstg"
+		printf "OBJECT_SHARED /Master/%s %s 0 0\n" "$(printf "%s" "${abtg}" | rev | cut -d "/" -f 1-3 | rev | cut -d "." -f 1)-objects.ac" "$(python3 ${thepwd}/../flightgear_tile.py $(printf "%s" "${abtg}" | rev | cut -d "/" -f 1 | rev | cut -d "." -f 1))" >> "$masterstg"
 
 		astg="${FG_ROOT}Scenery/London/Objects/$(printf "%s" "${abtg}" | rev | cut -d "/" -f 1-3 | rev | cut -d "." -f 1).stg"
 		if [ -d "$(dirname "$astg")" ]; then

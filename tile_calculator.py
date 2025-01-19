@@ -2,9 +2,15 @@
 
 USAGE:
 
-  $ python flightgear-tile.py LAT LON
+  $ python3 tile_calculator.py LON LAT
 
 Will print the index to standard output.
+
+OR
+
+  $ python3 tile_calculator.py tile_index
+
+Will print the LON LAT to standard output.
 
 David Megginson, 2024-08-05 (Public Domain)
 relicenced to GPLv2
@@ -40,7 +46,7 @@ def get_tile_width (lat):
             return entry[2]
     raise Exception("Latitude out of range")
 
-def calculate_tile_index (lat, lon):
+def calculate_tile_index (lon, lat):
     """ Calculate the index for a lat/lon """
     
     tile_width = get_tile_width(lat)
@@ -73,7 +79,7 @@ def calculate_tile_lat_lon(index: int):
 
     x = index
 
-    return lat, lon
+    return lon, lat
 
 #
 # Script entry point
