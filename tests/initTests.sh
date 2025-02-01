@@ -19,30 +19,28 @@ tar -xf FlightGear-2020.3.8-data.txz
 
 cd ..
 
-ln -s ../fgdata/fgdata/Models FG_ROOT
+ln -s fgdata/fgdata/Models FG_ROOT
 
 #process BTG files
 
-mkdir -p fgdata/fgdata/Scenery/London/Terrain
-cd fgdata/fgdata/Scenery/London/Terrain
+mkdir -p fgdata/fgdata/Scenery/London
+cd fgdata/fgdata/Scenery/London
 
-tar -xf $thepwd/fgdata/e000n50.tgz
 #mkdir -p BTG/e000n50/e000n51
 #cp -a Terrain/e000n50/e000n51/*.btg.gz BTG/e000n50/e000n51/
 #rm -rf Terrain Objects
-
-cd ..
 
 tar -xf $thepwd/fgdata/w010n50.tgz
 #mkdir -p BTG/w010n50/w001n51
 #cp -a Terrain/w010n50/w001n51/*.btg.gz BTG/w010n50/w001n51/
 #rm -rf Terrain Objects
 
-cd ..
+tar -xf $thepwd/fgdata/e000n50.tgz
+
+cd ../../
 
 #get Objects
 
-mkdir Objects
 cd Objects
 tar -xf $thepwd/fgdata/London-OSM-fg-CustomScenery-master.tar.gz
 
