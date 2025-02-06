@@ -30,41 +30,44 @@ find "${FG_ROOT}Scenery/${scenery_b}/Terrain" -maxdepth 2 -mindepth 2 -type d | 
       ''|*[!0-9]*) echo "Can't get lonlat from $fname, skipping..." ; continue ;;
     esac
 
+    fn_subdir_subdir="$(printf "%s" "${abtg}" | rev | cut -d "/" -f 1-3 | rev | cut -d "." -f 1)"
+
 
 		mkdir -p "$(printf "%sScenery/${scenery_a}/Master/%s\n" "${FG_ROOT}" "$(printf "%s" $tile | rev | cut -d "/" -f 1-2 | rev)")"
-		SCALE_FACTOR="1" FG_ROOT="${FG_ROOT}" FG_SCENERY="${FG_ROOT}Scenery/${scenery_a}/" python3 ${thepwd}/../btg_to_ac3d_2.py "${abtg}" "${FG_ROOT}Scenery/${scenery_a}/Master/$(printf "%s" "${abtg}" | rev | cut -d "/" -f 1-3 | rev | cut -d "." -f 1)-objects.ac"
 
-		masterstg="${FG_ROOT}Scenery/${scenery_a}/Master/$(printf "%s" "${abtg}" | rev | cut -d "/" -f 1-3 | rev | cut -d "." -f 1).stg"
+		SCALE_FACTOR="1" FG_ROOT="${FG_ROOT}" FG_SCENERY="${FG_ROOT}Scenery/${scenery_a}/" \
+		python3 ${thepwd}/../btg_to_ac3d_2.py "${abtg}" "${FG_ROOT}Scenery/${scenery_a}/Master/${fn_subdir_subdir}-objects.ac" > /dev/null
 
-		lonlat="$(python3 ${thepwd}/../tile_calculator.py $(printf "%s" "${abtg}" | rev | cut -d "/" -f 1 | rev | cut -d "." -f 1))"
+		masterstg="${FG_ROOT}Scenery/${scenery_a}/Master/${fn_subdir_subdir}.stg"
+
 		lonlat="$(python3 ${thepwd}/../tile_calculator.py "$fn_no_ext")"
 
 		elevation="$(echo woo $lonlat | FG_ROOT="${FG_ROOT}" FG_SCENERY="${FG_ROOT}Scenery/${scenery_a}/" fgelev | grep woo | cut -d ' ' -f 2)"
 
-		printf "OBJECT_SHARED /Master/%s %s %s 0\n" "$(printf "%s" "${abtg}" | rev | cut -d "/" -f 1-3 | rev | cut -d "." -f 1)-objects.ac" "$lonlat" "$elevation" >> "$masterstg"
+		printf "OBJECT_SHARED /Master/%s %s %s 0\n" "${fn_subdir_subdir}-objects.ac" "$lonlat" "$elevation" >> "$masterstg"
 
-		astg="${FG_ROOT}Scenery/${scenery_b}/Objects/$(printf "%s" "${abtg}" | rev | cut -d "/" -f 1-3 | rev | cut -d "." -f 1).stg"
+		astg="${FG_ROOT}Scenery/${scenery_b}/Objects/${fn_subdir_subdir}.stg"
 		if [ -d "$(dirname "$astg")" ]; then
 			if [ -f "$astg" ]; then
 				cat "$astg" >> "$masterstg"
 			fi
 		fi
 
-		astg="${FG_ROOT}Scenery/${scenery_b}/Pylons/$(printf "%s" "${abtg}" | rev | cut -d "/" -f 1-3 | rev | cut -d "." -f 1).stg"
+		astg="${FG_ROOT}Scenery/${scenery_b}/Pylons/${fn_subdir_subdir}.stg"
 		if [ -d "$(dirname "$astg")" ]; then
 			if [ -f "$astg" ]; then
 				cat "$astg" >> "$masterstg"
 			fi
 		fi
 
-		astg="${FG_ROOT}Scenery/${scenery_b}/Roads/$(printf "%s" "${abtg}" | rev | cut -d "/" -f 1-3 | rev | cut -d "." -f 1).stg"
+		astg="${FG_ROOT}Scenery/${scenery_b}/Roads/${fn_subdir_subdir}.stg"
 		if [ -d "$(dirname "$astg")" ]; then
 			if [ -f "$astg" ]; then
 				cat "$astg" >> "$masterstg"
 			fi
 		fi
 
-		astg="${FG_ROOT}Scenery/${scenery_b}/Buildings/$(printf "%s" "${abtg}" | rev | cut -d "/" -f 1-3 | rev | cut -d "." -f 1).stg"
+		astg="${FG_ROOT}Scenery/${scenery_b}/Buildings/${fn_subdir_subdir}.stg"
 		if [ -d "$(dirname "$astg")" ]; then
 
 			if [ -f "$astg" ]; then
@@ -72,7 +75,7 @@ find "${FG_ROOT}Scenery/${scenery_b}/Terrain" -maxdepth 2 -mindepth 2 -type d | 
 			fi
 		fi
 
-		astg="${FG_ROOT}Scenery/${scenery_b}/Details/$(printf "%s" "${abtg}" | rev | cut -d "/" -f 1-3 | rev | cut -d "." -f 1).stg"
+		astg="${FG_ROOT}Scenery/${scenery_b}/Details/${fn_subdir_subdir}.stg"
 		if [ -d "$(dirname "$astg")" ]; then
 			if [ -f "$astg" ]; then
 				cat "$astg" >> "$masterstg"
@@ -80,7 +83,10 @@ find "${FG_ROOT}Scenery/${scenery_b}/Terrain" -maxdepth 2 -mindepth 2 -type d | 
 		fi
 
 		mkdir -p "$(printf "%s/Final/AC3D/%s\n" "${thepwd}" "$(printf "%s" $tile | rev | cut -d "/" -f 1-2 | rev)")"
-		SCALE_FACTOR="0.001" FG_ROOT="${FG_ROOT}" FG_SCENERY="${FG_ROOT}Scenery/${scenery_a}/" python3 ${thepwd}/../concat_ac3.py "$masterstg" >> "${thepwd}/Final/AC3D/$(printf "%s" "${astg}" | rev | cut -d "/" -f 1-3 | rev | cut -d "." -f 1).ac"
+		astg_subdir_subdir="$(printf "%s" "${astg}" | rev | cut -d "/" -f 1-3 | rev | cut -d "." -f 1)"
+
+		SCALE_FACTOR="0.001" FG_ROOT="${FG_ROOT}" FG_SCENERY="${FG_ROOT}Scenery/${scenery_a}/" \
+		python3 ${thepwd}/../concat_ac3.py "$masterstg" >> "${thepwd}/Final/AC3D/${astg_subdir_subdir}.ac"
 	done
 done
 
