@@ -23,6 +23,12 @@ echo $PWD
 find "${FG_ROOT}Scenery/${scenery_b}/Terrain" -maxdepth 2 -mindepth 2 -type d | while read tile; do
 	mkdir -p "$(printf "Final/AC3D/%s\n" "$(printf "%s" $tile | rev | cut -d "/" -f 1-2 | rev)")"
 	find "$tile" -type f -name "*.btg.gz" | while read abtg; do
+    fname="$(basename "${abtg}")"
+    fn_no_ext="${fname%%.*}"
+    # Check that fn_no_ext is a positive integer
+    case $fn_no_ext in
+      ''|*[!0-9]*) echo "Can't get lonlat from $fname, skipping..." ; continue ;;
+    esac
 
 
 		mkdir -p "$(printf "%sScenery/${scenery_a}/Master/%s\n" "${FG_ROOT}" "$(printf "%s" $tile | rev | cut -d "/" -f 1-2 | rev)")"
@@ -31,6 +37,7 @@ find "${FG_ROOT}Scenery/${scenery_b}/Terrain" -maxdepth 2 -mindepth 2 -type d | 
 		masterstg="${FG_ROOT}Scenery/${scenery_a}/Master/$(printf "%s" "${abtg}" | rev | cut -d "/" -f 1-3 | rev | cut -d "." -f 1).stg"
 
 		lonlat="$(python3 ${thepwd}/../tile_calculator.py $(printf "%s" "${abtg}" | rev | cut -d "/" -f 1 | rev | cut -d "." -f 1))"
+		lonlat="$(python3 ${thepwd}/../tile_calculator.py "$fn_no_ext")"
 
 		elevation="$(echo woo $lonlat | FG_ROOT="${FG_ROOT}" FG_SCENERY="${FG_ROOT}Scenery/${scenery_a}/" fgelev | grep woo | cut -d ' ' -f 2)"
 
