@@ -21,9 +21,11 @@ def parse_verts_from_ac(f):
         else:
             # We're not in a block of verts
             if line.startswith("numvert"):
-                # block of verts found
-                numvert = int(line.split()[1])
-                verts_stored = 0
+                # Possible block of verts found
+                this_numvert = int(line.split()[1])
+                if this_numvert > 0:
+                    numvert = this_numvert
+                    verts_stored = 0
 
     return verts
 

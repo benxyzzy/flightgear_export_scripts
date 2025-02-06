@@ -67,12 +67,14 @@ def processACFile(ACFilePath, splitExtension, splitLine, globalMaterials=None, m
                     numvert = None
                     verts_written = None
             elif line2.strip().startswith("numvert "):
-                # Start of vert block
+                # Possible start of vert block
                 splitLine2 = line2.strip().split(" ")
-                numvert = int(splitLine2[1])
-                verts_written = 0
+                this_numvert = int(splitLine2[1])
+                if this_numvert > 0:
+                    numvert = this_numvert
+                    verts_written = 0
 
-                mainBody.append(line2.strip())
+                    mainBody.append(line2.strip())
             elif line2.strip() == "AC3Db":
                 continue
             elif line2.strip() == "OBJECT world":
