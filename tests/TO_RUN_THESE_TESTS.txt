@@ -17,3 +17,4 @@ Then you can run the following tests
 	testPlacement.sh is for checking the geometry is correct for the resulting AC3D. Placement is manually verified using fgfs from flightgear.
 	buildLondon.sh converts some scenery of London, UK to AC3D files
 	test_btg_to_ac3d_2.py and test_concat_ac3.py run some automated Python tests on the code. test_concat_ac3() is good for test-running overall concat_ac3.py functionality.
+	buildScenery.sh converts flightgear scenery to AC3D files. It requires fgelev, (which is installed by using the flightgear package on Debian,) it is also worth installing osgviewer (from the openscenegraph package on Debian) to view the resulting AC3D files.
