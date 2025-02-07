@@ -23,7 +23,7 @@ SCALE_FACTOR="0.001" FG_ROOT="${PWD}/fgdata/fgdata/" FG_SCENERY="${PWD}/fgdata/f
 # 3) run
 #	$ nano out.ac
 # change the first loc param to 
-#	loc -5464.558256687386 -2072.2831727121484 0
+#	loc -2076.327387217802 -5463.314448130804 0.77766
 
 # 4) run
 #	$osgviewer out.ac
