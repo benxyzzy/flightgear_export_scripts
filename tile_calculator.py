@@ -128,7 +128,7 @@ if __name__ == '__main__':
 
         print(calculate_tile_index(lat, lon))
     else:
-        print(f"Usage:\n  python3 {argv[0]} <lat> <lon>\n  python3 {argv[0]} <index>", file=sys.stderr)
+        print(f"Usage:\n  python3 {sys.argv[0]} <lat> <lon>\n  python3 {sys.argv[0]} [-c] <index>", file=sys.stderr)
         exit(2)
 
     exit(0)
