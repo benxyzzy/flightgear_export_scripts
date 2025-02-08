@@ -18,6 +18,16 @@ def stg_filepath():
     return (Path(__file__).parent / "958401-test.stg").resolve()
 
 
+@pytest.fixture()
+def FG_ROOT():
+    via_symlink = (Path(__file__).parent / "FG_ROOT").resolve()
+    if via_symlink.exists():
+        return via_symlink
+    else:
+        # in case symlink doesn't exist, we just guess / hope this is the right one
+        return (Path(__file__).parent / "fgdata/fgdata/Models").resolve()
+
+
 def test_concat_ac3(stg_filepath, monkeypatch):
     """High-level "smoke test" to check it runs without errors."""
     # FG_ROOT = "/home/x/PycharmProjects/flightgear_export_scripts/fg_install/fgdata/fgdata/"
@@ -69,3 +79,22 @@ def test_scale_factor(monkeypatch):
         loc = orig_locs[scale_factor]
         assert expected_loc == pytest.approx(loc), \
             f"Expected loc to be identical for scale factor {scale_factor}"
+
+
+def test_numvert_bug(FG_ROOT):
+    """
+    lines in .ac files like "numvert 0" might exist for some reason -
+    these DO NOT mark the start of a vert block (because 0 verts).
+    The below input to processACFile() caused a bug where this wasn't
+    accounted for, so this regression test checks the bug is now fixed.
+    """
+    # note the specific generic_flare_01.ac file is required for this test
+    scenery_dir = (FG_ROOT / ".." / "Scenery").resolve()
+    kwargs = {
+        'ACFilePath': str(scenery_dir / 'SceneryPack.BIKF/Models/Industrial/generic_flare_01.ac'),
+        'splitExtension': ['Models/Industrial/generic_flare_01', 'ac'],
+        'splitLine': ['OBJECT_SHARED', 'Models/Industrial/generic_flare_01.ac', '-2.8655556', '53.2836111', '-83.87',
+            '180'], 'numberOfObjects': 1}
+
+    # Should not raise a ValueError: could not convert string to float: 'numsurf'
+    concat_ac3.processACFile(**kwargs)

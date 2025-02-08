@@ -5,8 +5,6 @@ thepwd="${PWD}"
 
 #get flightgear data
 
-thepwd="$PWD"
-
 mkdir fgdata
 cd fgdata
 
@@ -40,7 +38,7 @@ tar -xf $thepwd/fgdata/e000n50.tgz
 cd ../../
 
 #get Objects
-
+mkdir -p Objects
 cd Objects
 tar -xf $thepwd/fgdata/London-OSM-fg-CustomScenery-master.tar.gz
 
