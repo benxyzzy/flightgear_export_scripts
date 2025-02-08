@@ -7,6 +7,9 @@ import os
 from pathlib import Path
 import sys
 
+import inspect
+import traceback
+
 
 FG_ROOT = os.environ.get("FG_ROOT", "/usr/share/games/flightgear/")
 
@@ -15,6 +18,41 @@ FG_SCENERY = os.environ.get("FG_SCENERY", "/usr/share/games/flightgear/Scenery/"
 def usage():
     print("Usage: python concat_ac3.py [file]")
     return
+
+
+def log_exceptions(exclude_args=None, exclude_exceptions=None):
+    if exclude_args is None:
+        exclude_args = set()
+    if exclude_exceptions is None:
+        exclude_exceptions = tuple()
+    else:
+        exclude_exceptions = tuple(exclude_exceptions)
+
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except exclude_exceptions:
+                raise
+            except Exception:
+                # Get function signature to match args to parameter names
+                sig = inspect.signature(func)
+                bound_args = sig.bind_partial(*args, **kwargs)
+                bound_args.apply_defaults()  # Ensure defaults are included
+
+                # Filter out excluded arguments
+                filtered_args = {k: v for k, v in bound_args.arguments.items() if k not in exclude_args}
+
+                print(f"Exception in function: {func.__name__}", file=sys.stderr)
+                print(f"Arguments (excluding {exclude_args}): {filtered_args}", file=sys.stderr)
+                print("Traceback:", file=sys.stderr)
+                traceback.print_exc(file=sys.stderr)
+
+                raise
+
+        return wrapper
+
+    return decorator
 
 
 # Convert geodetic coordinates to Cartesian
@@ -40,6 +78,7 @@ def geodToCart(lat, lon, alt):
     z = (h + n - e2 * n) * sphi
     return x, y, z
 
+@log_exceptions(exclude_args={"globalMaterials", "mainBody"}, exclude_exceptions=(FileNotFoundError,))
 def processACFile(ACFilePath, splitExtension, splitLine, globalMaterials=None, mainBody=None, numberOfObjects=0):
     if globalMaterials is None:
         globalMaterials = []
