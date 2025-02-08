@@ -36,8 +36,7 @@ find "${FG_ROOT}Scenery/${scenery_b}/Terrain" -maxdepth 2 -mindepth 2 -type d | 
 
 		masterstg="${FG_ROOT}Scenery/${scenery_a}/Master/$(printf "%s" "${abtg}" | rev | cut -d "/" -f 1-3 | rev | cut -d "." -f 1).stg"
 
-		lonlat="$(python3 ${thepwd}/../tile_calculator.py $(printf "%s" "${abtg}" | rev | cut -d "/" -f 1 | rev | cut -d "." -f 1))"
-		lonlat="$(python3 ${thepwd}/../tile_calculator.py "$fn_no_ext")"
+		lonlat="$(python3 ${thepwd}/../tile_calculator.py -c $(printf "%s" "${abtg}" | rev | cut -d "/" -f 1 | rev | cut -d "." -f 1))"
 
 		elevation="$(echo woo $lonlat | FG_ROOT="${FG_ROOT}" FG_SCENERY="${FG_ROOT}Scenery/${scenery_a}/" fgelev | grep woo | cut -d ' ' -f 2)"
 
